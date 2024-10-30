@@ -4,13 +4,13 @@ import appwriteService from "../appwrite/config";
 import { useNavigate, useParams } from "react-router-dom";
 
 function EditPost() {
-    const [post, setPost] = useState([])
-    const {slug} = useParams()
+    const [post, setPost] = useState(null)
+    const {documentId} = useParams()
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (slug) {
-            appwriteService.getPost(slug).then((post) => {
+        if (documentId) {
+            appwriteService.getPost(documentId).then((post) => {
                 if (post) {
                     setPost(post)
                 }
@@ -20,7 +20,7 @@ function EditPost() {
         }else{
             navigate('/all-posts')
         }
-    }, [slug, navigate])
+    }, [documentId, navigate])
   return post ? (
     <div className='py-8'>
         <Container>

@@ -25,12 +25,20 @@ export default function Post() {
 
     const deletePost = () => {
         appwriteService.deletePost(post.$id).then((status) => {
-            if (status) {
-                appwriteService.deleteFile(post.featuredImage);
-                navigate("/");
+            if (status && post.featuredImage) {
+                // Only delete the image if it exists
+                appwriteService.deleteFile(post.featuredImage)
+                    .then(() => {
+                        console.log("Image deleted successfully");
+                    })
+                    .catch((error) => {
+                        console.error("Failed to delete image:", error);
+                    });
             }
+            navigate("/"); // Navigate after deleting the post and image
         });
     };
+    
 
     return post ? (
         <div className="py-8">

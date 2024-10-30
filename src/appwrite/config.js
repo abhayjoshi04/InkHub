@@ -17,13 +17,21 @@ export class Service{
 
     async createPost({title, slug, content, featuredImage, status, userId}){
         try {
+
+            const safeContent = typeof content === 'string' ? content : String(content);
+
+            if (content.length > 5000) {
+                alert("Content exceeds the maximum limit of 5000 characters.");
+                return; 
+            }
+            const documentId = ID.unique();
             return await this.databases.createDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
-                slug,
+                documentId,
                 {
                     title,
-                    content,
+                    content: safeContent,
                     featuredImage,
                     status,
                     userId
@@ -35,12 +43,12 @@ export class Service{
         }
     }
 
-    async updatePost(slug, {title, content, featuredImage, status}){
+    async updatePost(documentId, {title, content, featuredImage, status}){
         try {
             return await this.databases.updateDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
-                slug,
+                documentId,
                 {
                     title,
                     content,
@@ -53,12 +61,12 @@ export class Service{
         }
     }
 
-    async deletePost(slug){
+    async deletePost(documentId){
         try {
             await this.databases.deleteDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
-                slug
+                documentId
             );
             return true;
         } catch (error) {
@@ -67,12 +75,12 @@ export class Service{
         }
     }
 
-    async getPost(slug){
+    async getPost(documentId){
         try {
             return await this.databases.getDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
-                slug
+                documentId
             );
         } catch (error) {
             console.error("Appwrite sevice :: getPost :: error", error);

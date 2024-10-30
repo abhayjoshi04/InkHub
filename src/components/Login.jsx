@@ -29,7 +29,7 @@ function Login() {
                 if(userData) dispatch(authLogin(userData));
                 navigate("/")
             }
-        } catch (error) {
+        } catch (error) { 
             setError(error.message)
         }
     }

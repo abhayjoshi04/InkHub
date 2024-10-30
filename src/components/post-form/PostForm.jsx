@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button, Input, RTE, Select } from "../index";
 import appwriteService from "../../appwrite/config";
@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 export default function PostForm({ post }) {
-    const { register, handleSubmit, watch, setValue, control, getValues } = useForm({
+    const { register, handleSubmit, watch, setValue, control, getValues, reset } = useForm({
         defaultValues: {
             title: post?.title || "",
             slug: post?.$id || "",
@@ -18,49 +18,75 @@ export default function PostForm({ post }) {
     const navigate = useNavigate();
     const userData = useSelector((state) => state.auth.userData);
 
-    const submit = async (data) => {
+    // Update form values when post changes
+    useEffect(() => {
         if (post) {
-            const file = data.image[0] ? await appwriteService.uploadFile(data.image[0]) : null;
+            reset({
+                title: post.title || "",
+                slug: post.$id || "",
+                content: post.content || "",
+                status: post.status || "active",
+            });
+        }
+    }, [post, reset]);
 
-            if (file) {
+    const submit = async (data) => {
+        if (data.content.length > 5000) {
+            alert("Content exceeds 5000 characters.");
+            return;
+        }
+
+        // If post exists (update case)
+        if (post) {
+            let file;
+            if (data.image?.[0]) {
+                file = await appwriteService.uploadFile(data.image[0]);
+            }
+
+            // Delete the old image if a new one is uploaded
+            if (file && post.featuredImage) {
                 appwriteService.deleteFile(post.featuredImage);
             }
 
             const dbPost = await appwriteService.updatePost(post.$id, {
                 ...data,
-                featuredImage: file ? file.$id : undefined,
+                featuredImage: file ? file.$id : post.featuredImage,
             });
 
             if (dbPost) {
                 navigate(`/post/${dbPost.$id}`);
             }
         } else {
-            const file = data.image[0] ? await appwriteService.uploadFile(data.image[0]) : null;
+            // If new post creation
+            const file = data.image?.[0] ? await appwriteService.uploadFile(data.image[0]) : null;
+            const fileId = file ? file.$id : undefined;
 
-            if (file) {
-                const fileId = file.$id;
-                data.featuredImage = fileId;
-                const dbPost = await appwriteService.createPost({ ...data, userId: userData.$id });
+            const dbPost = await appwriteService.createPost({
+                ...data,
+                featuredImage: fileId,
+                userId: userData.$id,
+            });
 
-                if (dbPost) {
-                    navigate(`/post/${dbPost.$id}`);
-                }
+            if (dbPost) {
+                navigate(`/post/${dbPost.$id}`);
             }
         }
     };
 
+    // Slug transformation function
     const slugTransform = useCallback((value) => {
-        if (value && typeof value === "string")
+        if (value && typeof value === "string") {
             return value
                 .trim()
                 .toLowerCase()
                 .replace(/[^a-zA-Z\d\s]+/g, "-")
                 .replace(/\s/g, "-");
-
+        }
         return "";
     }, []);
 
-    React.useEffect(() => {
+    // Watch title field and generate slug
+    useEffect(() => {
         const subscription = watch((value, { name }) => {
             if (name === "title") {
                 setValue("slug", slugTransform(value.title), { shouldValidate: true });
@@ -88,7 +114,12 @@ export default function PostForm({ post }) {
                         setValue("slug", slugTransform(e.currentTarget.value), { shouldValidate: true });
                     }}
                 />
-                <RTE label="Content :" name="content" control={control} defaultValue={getValues("content")} />
+                <RTE
+                    label="Content :"
+                    name="content"
+                    control={control}
+                    defaultValue={getValues("content")}
+                />
             </div>
             <div className="w-1/3 px-2">
                 <Input
@@ -98,7 +129,7 @@ export default function PostForm({ post }) {
                     accept="image/png, image/jpg, image/jpeg, image/gif"
                     {...register("image", { required: !post })}
                 />
-                {post && (
+                {post?.featuredImage && (
                     <div className="w-full mb-4">
                         <img
                             src={appwriteService.getFilePreview(post.featuredImage)}
