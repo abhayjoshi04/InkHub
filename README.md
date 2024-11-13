@@ -28,13 +28,17 @@ InkHub is a dynamic and user-friendly blogging platform designed to allow users 
 ## Screenshots
 
 ### Home Page
-![Home Page](./screenshots/homepage.png)
+![image](https://github.com/user-attachments/assets/4f15f99f-02bc-4308-9576-5758be760674)
+![image](https://github.com/user-attachments/assets/9132f3ea-4c87-4944-acdd-15f28c18e32d)
+
+
 
 ### Post Editor
-![Post Editor](./screenshots/post-editor.png)
+![image](https://github.com/user-attachments/assets/12299496-4306-4d45-af1e-370c812d2e1d)
 
 ### Post View
-![Post View](./screenshots/post-view.png)
+![Screenshot 2024-11-13 221350](https://github.com/user-attachments/assets/8c3ee5e4-bab4-4e83-85dd-9a1199c7990d)
+
 
 ## Installation and Setup
 
